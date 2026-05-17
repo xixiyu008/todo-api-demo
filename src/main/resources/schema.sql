@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS app_users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    enabled BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS todos (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(120) NOT NULL,
+    done BOOLEAN NOT NULL,
+    priority VARCHAR(20) NOT NULL,
+    user_id BIGINT NOT NULL,
+    CONSTRAINT fk_todos_user FOREIGN KEY (user_id) REFERENCES app_users(id)
+);
