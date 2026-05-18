@@ -9,21 +9,12 @@
         </div>
       </div>
 
-      <section class="sidebar-panel identity-panel">
+      <section v-if="!isAuthenticated" class="sidebar-panel identity-panel">
         <div class="panel-head">
           <div>
-            <h2>{{ isAuthenticated ? "我的账号" : "欢迎回来" }}</h2>
+            <h2>欢迎回来</h2>
             <p>{{ authHint }}</p>
           </div>
-          <button
-            v-if="isAuthenticated"
-            id="logoutButton"
-            class="button button-danger"
-            type="button"
-            @click="handleLogout"
-          >
-            退出
-          </button>
         </div>
 
         <form id="loginForm" class="form" @submit.prevent="handleLogin">
@@ -52,7 +43,7 @@
             id="loginButton"
             class="button button-primary button-block"
             type="submit"
-            :disabled="isAuthenticated || loading.login"
+            :disabled="loading.login"
           >
             {{ loading.login ? "登录中..." : "登录" }}
           </button>
@@ -103,7 +94,7 @@
       <section v-if="isAuthenticated" id="currentUserPanel" class="sidebar-panel current-user-panel">
         <div class="panel-head compact">
           <div>
-            <h2>当前身份</h2>
+            <h2>我的账号</h2>
             <p id="userPanelHint">{{ isAdmin ? "你当前拥有管理员权限。" : "这里只显示你的个人工作区。" }}</p>
           </div>
         </div>
@@ -119,15 +110,25 @@
           </template>
         </div>
 
-        <button
-          v-if="isAdmin"
-          id="openAdminPanelButton"
-          class="button button-secondary button-block admin-entry"
-          type="button"
-          @click="openAdminPanel"
-        >
-          打开用户管理
-        </button>
+        <div class="account-actions">
+          <button
+            v-if="isAdmin"
+            id="openAdminPanelButton"
+            class="button button-secondary button-block admin-entry"
+            type="button"
+            @click="openAdminPanel"
+          >
+            打开用户管理
+          </button>
+          <button
+            id="logoutButton"
+            class="button logout-link button-block"
+            type="button"
+            @click="handleLogout"
+          >
+            退出登录
+          </button>
+        </div>
       </section>
     </aside>
 
@@ -298,8 +299,25 @@
                         </select>
                         <div class="field-error" aria-live="polite">{{ inlineEditError }}</div>
                         <div class="todo-editor-actions">
-                          <button class="button ghost" type="button" data-action="save" @click="saveTodo(todo.id)">保存</button>
-                          <button class="button ghost" type="button" data-action="cancel" @click="cancelEdit">取消</button>
+                          <el-button
+                            class="editor-save-button"
+                            type="primary"
+                            size="small"
+                            data-action="save"
+                            :loading="loading.actionId === todo.id"
+                            @click="saveTodo(todo.id)"
+                          >
+                            保存
+                          </el-button>
+                          <el-button
+                            class="editor-cancel-button"
+                            size="small"
+                            data-action="cancel"
+                            :disabled="loading.actionId === todo.id"
+                            @click="cancelEdit"
+                          >
+                            取消
+                          </el-button>
                         </div>
                       </div>
                     </template>
@@ -1095,6 +1113,17 @@ export default {
   box-sizing: border-box;
 }
 
+:global(:root) {
+  --el-color-primary: #2563eb;
+  --el-color-primary-light-3: #60a5fa;
+  --el-color-primary-light-5: #93c5fd;
+  --el-color-primary-light-7: #bfdbfe;
+  --el-color-primary-light-9: #eff6ff;
+  --el-color-primary-dark-2: #1d4ed8;
+  --el-border-radius-base: 8px;
+  --el-font-family: "Segoe UI Variable", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
 :global(button),
 :global(input) {
   font: inherit;
@@ -1114,11 +1143,10 @@ export default {
   align-content: start;
   gap: 16px;
   padding: 22px;
-  border-radius: 30px;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(20, 32, 56, 0.94) 100%);
-  color: #f8fbff;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  border-radius: 8px;
+  background: #111827;
+  color: #f8fafc;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.2);
 }
 
 .brand {
@@ -1133,8 +1161,8 @@ export default {
   place-items: center;
   width: 50px;
   height: 50px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #8095ff 0%, #4f46e5 100%);
+  border-radius: 8px;
+  background: #2563eb;
   font-size: 1.3rem;
   font-weight: 800;
 }
@@ -1143,7 +1171,7 @@ export default {
   margin: 0 0 4px;
   font-size: 0.74rem;
   letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.58);
+  color: #94a3b8;
 }
 
 .brand h1 {
@@ -1157,14 +1185,14 @@ export default {
 .composer-panel,
 .tasks-panel,
 .inspector-panel {
-  border-radius: 28px;
+  border-radius: 8px;
 }
 
 .sidebar-panel {
   padding: 18px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
+  background: #1f2937;
+  border: 1px solid #334155;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .workspace {
@@ -1179,7 +1207,7 @@ export default {
 .inspector-panel {
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.76);
-  box-shadow: 0 22px 48px rgba(17, 24, 39, 0.08);
+  box-shadow: 0 18px 42px rgba(17, 24, 39, 0.08);
   backdrop-filter: blur(12px);
 }
 
@@ -1222,12 +1250,12 @@ export default {
 .hero-stat,
 .summary-item {
   padding: 16px 18px;
-  border-radius: 22px;
+  border-radius: 8px;
   background: #f8fafc;
 }
 
 .hero-stat.accent {
-  background: linear-gradient(135deg, #ecf3ff 0%, #edf7f3 100%);
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdfa 100%);
 }
 
 .hero-stat span,
@@ -1312,15 +1340,16 @@ export default {
 
 .sidebar .panel-head p,
 .sidebar .identity-meta {
-  color: rgba(255, 255, 255, 0.7);
+  color: #cbd5e1;
 }
 
 .input,
 .inline-input {
   width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 0 14px;
   background: #fff;
   color: #172033;
   outline: none;
@@ -1329,14 +1358,14 @@ export default {
 
 .sidebar .input,
 .sidebar .inline-input {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.98);
+  border-color: #475569;
+  background: #f8fafc;
 }
 
 .input:focus,
 .inline-input:focus {
-  border-color: rgba(79, 70, 229, 0.44);
-  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+  border-color: rgba(37, 99, 235, 0.5);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
   transform: translateY(-1px);
 }
 
@@ -1357,15 +1386,16 @@ export default {
 
 .button {
   border: 0;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 12px 18px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 .button:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
 }
 
 .button:disabled {
@@ -1379,26 +1409,57 @@ export default {
 
 .button-primary {
   color: #fff;
-  background: linear-gradient(135deg, #4453d7 0%, #2839b8 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 .button-secondary {
-  background: rgba(15, 23, 42, 0.08);
+  background: #eef4ff;
   color: #172033;
+}
+
+.sidebar .button-secondary {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.sidebar .button-secondary:hover:not(:disabled) {
+  background: #bae6fd;
 }
 
 .admin-entry {
   margin-top: 10px;
 }
 
+.account-actions {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px solid #334155;
+}
+
+.logout-link {
+  justify-content: center;
+  border: 1px solid #64748b;
+  background: transparent;
+  color: #e2e8f0;
+}
+
+.logout-link:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+  box-shadow: none;
+}
+
 .button-danger {
   color: #fff;
-  background: rgba(239, 68, 68, 0.22);
+  background: #dc2626;
 }
 
 .ghost {
   border: 1px solid rgba(15, 23, 42, 0.1);
-  background: transparent;
+  background: #fff;
   color: inherit;
 }
 
@@ -1414,7 +1475,7 @@ export default {
 
 .filter-chip {
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 999px;
+  border-radius: 8px;
   background: #f8fafc;
   color: #667085;
   padding: 10px 14px;
@@ -1423,9 +1484,9 @@ export default {
 }
 
 .filter-chip.active {
-  background: rgba(79, 70, 229, 0.08);
-  border-color: rgba(79, 70, 229, 0.2);
-  color: #3730a3;
+  background: #eff6ff;
+  border-color: rgba(37, 99, 235, 0.28);
+  color: #1d4ed8;
 }
 
 .toolbar-note {
@@ -1483,6 +1544,46 @@ export default {
 
 .todo-item:first-child {
   border-top: 0;
+}
+
+.todo-editor {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 8px;
+  background: #f8fbff;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.todo-editor .priority-select {
+  max-width: 180px;
+}
+
+.todo-editor-actions {
+  justify-content: flex-start;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.editor-save-button,
+.editor-cancel-button {
+  min-width: 82px;
+  font-weight: 700;
+}
+
+.editor-save-button {
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+}
+
+.todo-actions {
+  align-self: start;
+  justify-content: flex-end;
+}
+
+.todo-actions .button {
+  min-width: 58px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
 }
 
 .todo-tag,
@@ -1552,6 +1653,30 @@ export default {
   color: #b42318;
 }
 
+.sidebar .role-tag {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.sidebar .role-tag.admin {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.sidebar .user-state {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sidebar .user-state.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sidebar .identity-name {
+  color: #f8fafc;
+}
+
 .todo-id {
   color: #98a2b3;
 }
@@ -1613,7 +1738,7 @@ export default {
   display: grid;
   gap: 6px;
   padding: 14px 16px;
-  border-radius: 20px;
+  border-radius: 8px;
   background: #f8fafc;
 }
 
@@ -1662,7 +1787,7 @@ export default {
   max-height: min(80vh, 920px);
   overflow: auto;
   padding: 24px;
-  border-radius: 28px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.82);
   box-shadow: 0 30px 70px rgba(15, 23, 42, 0.22);
@@ -1677,7 +1802,7 @@ export default {
 .confirm-sheet {
   width: min(460px, 100%);
   padding: 24px;
-  border-radius: 28px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.84);
   box-shadow: 0 30px 70px rgba(15, 23, 42, 0.22);
@@ -1688,7 +1813,7 @@ export default {
   gap: 6px;
   margin: 18px 0 20px;
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 8px;
   background: #f8fafc;
 }
 
@@ -1785,7 +1910,7 @@ export default {
   .composer-panel,
   .tasks-panel,
   .inspector-panel {
-    border-radius: 22px;
+    border-radius: 8px;
   }
 
   .hero-stats,
@@ -1802,12 +1927,12 @@ export default {
 
   .admin-sheet {
     padding: 18px;
-    border-radius: 22px;
+    border-radius: 8px;
   }
 
   .confirm-sheet {
     padding: 18px;
-    border-radius: 22px;
+    border-radius: 8px;
   }
 }
 </style>
